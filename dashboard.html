@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard - Smart Placement Recommendation System</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <a href="register.html">Register</a>
+    <a href="dashboard.html">Dashboard</a>
+</nav>
+
+<div class="container">
+    <h1>Placement Dashboard</h1>
+
+    <label for="studentSelect">Choose your Student ID</label>
+    <select id="studentSelect" style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc;">
+        <option value="">-- loading students --</option>
+    </select>
+
+    <button id="checkBtn">Check My Results</button>
+
+    <div id="output"></div>
+</div>
+
+<script>
+const studentSelect = document.getElementById('studentSelect');
+const output = document.getElementById('output');
+
+// Pre-fill from ?studentId=5 in the URL if present
+const urlParams = new URLSearchParams(window.location.search);
+const preselectId = urlParams.get('studentId');
+
+async function loadStudents() {
+    try {
+        const res = await fetch('api/students');
+        const students = await res.json();
+        studentSelect.innerHTML = '<option value="">-- select a student --</option>';
+        students.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.name + ' (ID ' + s.id + ', CGPA ' + s.cgpa + ', ' + s.branch + ')';
+            studentSelect.appendChild(opt);
+        });
+        if (preselectId) {
+            studentSelect.value = preselectId;
+            runCheck();
+        }
+    } catch (err) {
+        studentSelect.innerHTML = '<option value="">Could not load students</option>';
+    }
+}
+
+async function runCheck() {
+    const studentId = studentSelect.value;
+    if (!studentId) {
+        output.innerHTML = '<p class="error">Please select a student first.</p>';
+        return;
+    }
+
+    output.innerHTML = '<p>Checking...</p>';
+
+    try {
+        const res = await fetch('api/evaluate?studentId=' + studentId);
+        const data = await res.json();
+
+        if (!res.ok) {
+            output.innerHTML = '<p class="error">Error: ' + (data.error || 'something went wrong') + '</p>';
+            return;
+        }
+
+        let html = '';
+
+        html += '<div class="results-section"><h2>✅ Eligible</h2>';
+        if (data.eligible.length === 0) {
+            html += '<p>No eligible companies yet — check the missing-skills list below.</p>';
+        } else {
+            data.eligible.forEach(c => {
+                html += '<div class="card eligible">' + c.name +
+                        '<div class="score">Score: ' + c.score + '</div></div>';
+            });
+        }
+        html += '</div>';
+
+        html += '<div class="results-section"><h2>❌ Not Eligible</h2>';
+        if (data.notEligible.length === 0) {
+            html += '<p>You qualify for every company in the system. Great profile!</p>';
+        } else {
+            data.notEligible.forEach(c => {
+                html += '<div class="card not-eligible">' + c.name +
+                        '<div class="reason">' + c.reason + '</div></div>';
+            });
+        }
+        html += '</div>';
+
+        html += '<div class="results-section"><h2>⭐ Recommended (Best Matches)</h2>';
+        if (data.recommended.length === 0) {
+            html += '<p>No recommendations available yet — add more skills to your profile.</p>';
+        } else {
+            data.recommended.forEach((c, i) => {
+                html += '<div class="card recommended"><span class="rank">' + (i + 1) + '.</span>' + c.name +
+                        '<div class="score">Score: ' + c.score + '</div></div>';
+            });
+        }
+        html += '</div>';
+
+        output.innerHTML = html;
+
+    } catch (err) {
+        output.innerHTML = '<p class="error">Network error: ' + err.message + '</p>';
+    }
+}
+
+document.getElementById('checkBtn').addEventListener('click', runCheck);
+loadStudents();
+</script>
+
+</body>
+</html>

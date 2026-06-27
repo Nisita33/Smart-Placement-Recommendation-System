@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Register - Smart Placement Recommendation System</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <a href="register.html">Register</a>
+    <a href="dashboard.html">Dashboard</a>
+</nav>
+
+<div class="container">
+    <h1>Student Registration</h1>
+    <p>Add your profile. We'll match you against company requirements automatically.</p>
+
+    <form id="registerForm">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="cgpa">CGPA</label>
+        <input type="number" id="cgpa" name="cgpa" step="0.01" min="0" max="10" required>
+
+        <label for="branch">Branch</label>
+        <input type="text" id="branch" name="branch" placeholder="e.g. CSE, IT, ECE" required>
+
+        <label>Skills</label>
+        <div class="skills-grid">
+            <label><input type="checkbox" name="skills" value="Java"> Java</label>
+            <label><input type="checkbox" name="skills" value="Python"> Python</label>
+            <label><input type="checkbox" name="skills" value="SQL"> SQL</label>
+            <label><input type="checkbox" name="skills" value="React"> React</label>
+            <label><input type="checkbox" name="skills" value="DSA"> DSA</label>
+            <label><input type="checkbox" name="skills" value="Communication"> Communication</label>
+        </div>
+
+        <button type="submit">Register</button>
+    </form>
+
+    <div id="message"></div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const params = new URLSearchParams();
+    for (const pair of formData.entries()) {
+        params.append(pair[0], pair[1]);
+    }
+
+    const messageEl = document.getElementById('message');
+    messageEl.textContent = 'Saving...';
+    messageEl.className = '';
+
+    try {
+        const res = await fetch('api/students', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            messageEl.textContent = 'Error: ' + (data.error || 'something went wrong');
+            messageEl.className = 'error';
+            return;
+        }
+
+        messageEl.innerHTML = 'Registered! Your Student ID is <strong>' + data.id +
+            '</strong>. <a href="dashboard.html?studentId=' + data.id + '">View your results &rarr;</a>';
+        messageEl.className = 'success';
+        this.reset();
+
+    } catch (err) {
+        messageEl.textContent = 'Network error: ' + err.message;
+        messageEl.className = 'error';
+    }
+});
+</script>
+
+</body>
+</html>
