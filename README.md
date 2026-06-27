@@ -14,17 +14,6 @@ custom scoring algorithm.
 ## Tech Stack
 Java, Servlets, JDBC, MySQL, HTML/CSS/JavaScript, Apache Tomcat
 
-## Screenshots
-
-**Student Registration**
-![Registration](screenshot-register.png)
-
-**Dashboard**
-![Dashboard](screenshot-dashboard.png)
-
-**Eligibility Results**
-![Results](screenshot-results.png)
-
 ## How it works
 1. Student registers with name, CGPA, branch, and skills
 2. System compares profile against each company's requirements
