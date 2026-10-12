@@ -4,10 +4,10 @@ import java.sql.SQLException;
 
 public class DBConnection {
 
-    private static final String URL = env("DB_URL",
+    private static final String URL = env("MYSQL_URL",
         "jdbc:mysql://localhost:3306/placement_system");
-    private static final String USER = env("DB_USER", "root");
-    private static final String PASSWORD = env("DB_PASSWORD", "");
+    private static final String USER = env("MYSQL_USER", "root");
+    private static final String PASSWORD = env("MYSQL_PASSWORD", "");
 
     private static String env(String key, String fallback) {
         String v = System.getenv(key);
